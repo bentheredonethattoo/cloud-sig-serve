@@ -3,27 +3,30 @@ const cloudinary = require('cloudinary').v2;
 const cors = require('cors');
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
 
+// Configure Cloudinary
 cloudinary.config({
   cloud_name: 'dugdbmksq',
   api_key: '852977721653853',
   api_secret: 'qliUQj0-ocdNrVx4qD_C1OiqWN8',
 });
 
-// POST route for generating signature (main use case)
+// Root route (optional but helpful)
+app.get('/', (req, res) => {
+  res.send('✅ Cloudinary Signature Server is running');
+});
+
+// POST route: Generate signed parameters for secure upload
 app.post('/generate-signature', (req, res) => {
   const timestamp = Math.floor(Date.now() / 1000);
   const public_id = req.body.public_id || `contract_${timestamp}`;
 
   const signature = cloudinary.utils.api_sign_request(
-    {
-      timestamp,
-      public_id,
-    },
+    { timestamp, public_id },
     cloudinary.config().api_secret
   );
 
@@ -36,16 +39,13 @@ app.post('/generate-signature', (req, res) => {
   });
 });
 
-// GET route for quick signature testing (optional)
+// GET route: Generate signature for testing from browser or curl
 app.get('/signature', (req, res) => {
   const timestamp = Math.floor(Date.now() / 1000);
   const public_id = `contract_${timestamp}`;
 
   const signature = cloudinary.utils.api_sign_request(
-    {
-      timestamp,
-      public_id,
-    },
+    { timestamp, public_id },
     cloudinary.config().api_secret
   );
 
@@ -58,11 +58,8 @@ app.get('/signature', (req, res) => {
   });
 });
 
+// Start the server
 app.listen(port, () => {
-  console.log(`Cloudinary signature server running at http://localhost:${port}`);
+  console.log(`🚀 Signature server running on port ${port}`);
 });
 
-
-app.listen(port, () => {
-  console.log(`Cloudinary signature server running at http://localhost:${port}`);
-});
